@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Music Bot Collective</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{--bg:#06131a;--card:#0b1d27;--line:#1f3d4a;--teal:#2dd4bf;--text:#eaf2f7;--mute:#9fb3c2;--green:#2f6b3a;--pink:#e84d8a}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
+body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:radial-gradient(130% 55% at 50% 0,#0c3b3f 0,var(--bg) 62%) fixed;color:var(--text);padding:14px 14px calc(96px + env(safe-area-inset-bottom))}
+.toast{border-left:5px solid var(--pink);background:#16283a;border-radius:18px;padding:18px 20px;font-weight:600;font-size:16px;margin-bottom:14px;transition:.3s}
+.toast.hide{opacity:0;height:0;padding:0;margin:0;overflow:hidden}
+.me{display:flex;align-items:center;gap:14px;border:1px solid var(--line);background:#12263a;border-radius:40px;padding:12px 18px;margin-bottom:26px}
+.me img,.av{width:56px;height:56px;border-radius:50%;object-fit:cover;background:#1b3347;display:grid;place-items:center;font-weight:700;flex:none}
+.me b{display:block;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.me span{color:var(--mute);font-size:14px}
+.head{border-left:5px solid var(--teal);padding-left:16px;margin-bottom:18px}
+.head h1{font-size:26px;font-weight:800;display:flex;gap:12px;align-items:center}
+.chip{display:inline-block;border:1px solid var(--line);background:#12303a;color:var(--teal);border-radius:30px;padding:8px 18px;font-weight:700;font-size:15px;margin-top:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:28px;padding:22px;margin-bottom:18px}
+.top{display:flex;gap:16px;align-items:center}
+.av{width:68px;height:68px;overflow:hidden;border:3px solid var(--teal);background:#16283f;font-size:30px}
+.top h2{font-size:19px;font-weight:800;margin-bottom:6px}
+.tag{display:inline-block;border:1px solid var(--line);background:#12263a;border-radius:20px;padding:5px 12px;font-size:14px;color:var(--mute);margin:0 6px 6px 0}
+.tag.t{color:var(--teal);background:#12303a}
+.desc{margin:16px 0;font-size:17px;line-height:1.45}
+.row{display:flex;justify-content:space-between;align-items:center;border-top:1px dashed var(--line);padding-top:16px;margin-bottom:14px}
+.row .on{color:#4ade80;font-weight:600}.row .on:before{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;background:#4ade80;margin-right:8px}
+.btn{display:block;width:100%;text-align:center;text-decoration:none;color:var(--text);font-weight:700;font-size:17px;border-radius:20px;padding:15px;border:1px solid var(--line);background:#16394a;margin-top:10px}
+.btn.g{background:var(--green);border-color:#3f8a4d}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:space-around;background:#0a1520;border-top:1px solid var(--line);padding:10px 0 calc(10px + env(safe-area-inset-bottom))}
+nav button{background:none;border:0;color:var(--mute);font-size:14px;padding:8px 22px;border-radius:24px;display:flex;flex-direction:column;align-items:center;gap:4px}
+nav button i{font-style:normal;font-size:22px}
+nav button.on{color:var(--teal);background:#12303a}
+.pcard{text-align:center;padding:34px 18px 26px}
+.pav{width:150px;height:150px;border-radius:50%;border:5px solid var(--teal);box-shadow:0 0 40px #2dd4bf40;object-fit:cover;background:#16283f;display:grid;place-items:center;font-size:60px;font-weight:800;margin:0 auto 22px}
+.pcard h2{font-size:24px;line-height:1.4;margin-bottom:8px}
+.pcard .meta{font-size:19px;line-height:1.6}
+.stat{display:flex;gap:18px;align-items:center;text-align:left;background:#10262d;border:1px solid var(--line);border-radius:26px;padding:22px 24px;margin-top:20px}
+.stat i{font-style:normal;font-size:38px}.stat b{display:block;font-size:22px;margin-bottom:6px}.stat span{font-size:21px}
+.conn{margin-top:30px;font-size:21px;line-height:2}
+.conn select{font-size:17px;padding:6px 10px;border-radius:6px;background:#fff;color:#111;border:1px solid #888}
+.sheet{position:fixed;inset:0;background:#000a;display:none;align-items:flex-end;z-index:20}
+.sheet.show{display:flex}
+.sheet .box{width:100%;background:#0b1d27;border-top:1px solid var(--line);border-radius:28px 28px 0 0;padding:22px 18px calc(24px + env(safe-area-inset-bottom))}
+.sheet h3{font-size:20px;margin-bottom:6px}
+.sheet .btn{display:flex;align-items:center;justify-content:center;gap:10px}
+.sheet .cl{background:none;border:0;color:var(--mute);width:100%;padding:16px;font-size:16px;margin-top:6px}
+.page{display:none}.page.show{display:block}
+.empty{color:var(--mute);line-height:1.6}
+</style>
+</head>
+<body>
+
+<div class="me" id="meBtn" style="cursor:pointer"><div id="avatar" class="av">?</div><div style="min-width:0"><b id="uname">Guest</b><span>tap profile</span></div></div>
+
+<section class="page show" id="home">
+  <div class="head"><h1>🤖 Music Bot Collective</h1><span class="chip" id="count"></span></div>
+  <div id="list"></div>
+</section>
+
+<section class="page" id="profile">
+  <div class="card pcard">
+    <div id="pav" class="pav">?</div>
+    <h2 id="pname">Guest</h2>
+    <div class="meta"><div id="puser"></div><div id="pid"></div></div>
+    <div class="stat"><i>📅</i><div><b data-t="since">Member Since</b><span id="since"></span></div></div>
+    <div class="stat"><i>🤖</i><div><b data-t="bots">Bots Accessed</b><span id="nbots"></span></div></div>
+    <div class="conn">✈️ <span data-t="conn">Connected via Telegram WebApp</span><br>🌐 <span data-t="lang">Language</span> <select id="lang"><option value="en">English</option><option value="hi">हिन्दी</option></select></div>
+  </div>
+</section>
+
+<nav>
+  <button class="on" data-p="home"><i>🏠</i>Home</button>
+  <button data-p="profile"><i>👤</i>Profile</button>
+  <button id="contactBtn"><i>💬</i>Contact</button>
+</nav>
+
+<div class="sheet" id="sheet"><div class="box">
+  <h3 id="ctitle">Contact</h3>
+  <a class="btn" href="#" data-u="__GROUP__">👥 <span data-t="group">Group</span></a>
+  <a class="btn" href="#" data-u="__CHANNEL__">📢 <span data-t="channel">Channel</span></a>
+  <a class="btn g" href="#" data-u="__OWNER__">👤 <span data-t="owner">Owner</span></a>
+  <button class="cl" id="cclose">✕</button>
+</div></div>
+
+<script>
+/* ====== SETTINGS ====== */
+// Sirf username kaafi hai, naam automatic aa jayega: ?bot=USERNAME  ya  ?bots=User1bot,User2bot
+// BotFather me Mini App link aise lagao:
+// https://abhaymor0282-hue.github.io/miniapp/?bot=USERNAME&name=BOT%20NAME&users=10,000
+// Ek link me 2+ bots: ?bots=User1bot|Naam 1,User2bot|Naam 2
+// Jitne bots me ye link lagaoge, sab Home me ek saath dikhenge (is phone me save hote jate hain).
+const q = new URLSearchParams(location.search);
+const GROUP_URL   = "https://t.me/ll_GOSSIP_GOAL_ll";     // support group ka link
+const CHANNEL_URL = "https://t.me/alexaxfamily";   // channel ka link
+const OWNER_URL   = "https://t.me/youerox";  // owner ka link
+const STATS_URL = q.get("api") || "";   // optional: {"users":123} dene wala URL
+const DEF_DESC = "High quality music player in voice chats - Play any song!";
+/* ====================== */
+let BOTS = [];
+try{BOTS = JSON.parse(localStorage.getItem("bots")||"[]")}catch(e){}
+const clean = x => (x||"").replace(/^@/,"").replace(/[^A-Za-z0-9_]/g,"");
+const incoming = [];
+if(clean(q.get("bot"))) incoming.push({user:clean(q.get("bot")), name:q.get("name"), users:q.get("users"), desc:q.get("desc")});
+(q.get("bots")||"").split(",").forEach(p=>{const [us,nm]=p.split("|");if(clean(us)) incoming.push({user:clean(us), name:(nm||"").trim()})});
+incoming.reverse().forEach(inc=>{
+  const i = BOTS.findIndex(b=>b.user.toLowerCase()===inc.user.toLowerCase());
+  const old = i>=0 ? BOTS[i] : {};
+  const entry = {user:inc.user, name:inc.name||old.name||inc.user, users:inc.users||old.users||"", desc:inc.desc||old.desc||DEF_DESC, icon:"🎵", online:true};
+  if(i>=0) BOTS.splice(i,1);
+  BOTS.unshift(entry);            // naya/current bot upar
+});
+if(incoming.length){try{localStorage.setItem("bots",JSON.stringify(BOTS))}catch(e){}}
+const tg = window.Telegram && Telegram.WebApp;
+if(tg){tg.ready();tg.expand();try{tg.setHeaderColor("#06131a");tg.setBackgroundColor("#06131a")}catch(e){}}
+const $ = id => document.getElementById(id);
+const u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
+if(u){
+  const n = [u.first_name,u.last_name].filter(Boolean).join(" ");
+  $("uname").textContent = $("pname").textContent = n;
+  $("puser").textContent = u.username ? "@" + u.username : "";
+  $("pid").textContent = "ID: " + u.id;
+  if(u.photo_url){
+    $("avatar").outerHTML = '<img id="avatar" src="'+u.photo_url+'" alt="">';
+    $("pav").outerHTML = '<img id="pav" class="pav" src="'+u.photo_url+'" alt="">';
+  } else $("avatar").textContent = $("pav").textContent = n.charAt(0).toUpperCase();
+}
+$("count").textContent = BOTS.length + " active bots";
+const open = url => tg ? tg.openTelegramLink(url) : window.open(url, "_blank");
+$("list").innerHTML = BOTS.length ? BOTS.map(b => `
+<div class="card" data-user="${b.user}"><div class="top"><div class="av"><img src="https://t.me/i/userpic/320/${b.user}.jpg" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover" onerror="this.replaceWith(document.createTextNode('${b.icon}'))"></div><div>
+<h2></h2><span class="tag">@${b.user}</span><br><span class="tag t uct" style="display:none">📈 <span class="uc"></span> users</span></div></div>
+<p class="desc"></p>
+<div class="row"><span class="tag">🎵 Music</span><span class="${b.online?'on':''}">${b.online?'Online':'Offline'}</span></div>
+<a class="btn" href="#" data-u="https://t.me/${b.user}?start=start">▶️ Start Me</a>
+<a class="btn g" href="#" data-u="https://t.me/${b.user}?startgroup=true">➕ Add Me to Group</a></div>`).join("")
+ : '<div class="card empty">Koi bot nahi mila. Link me ?bot=USERNAME&name=NAME lagao.</div>';
+document.querySelectorAll("#list .card").forEach((c,i)=>{
+  const b=BOTS[i]; if(!b) return;
+  c.querySelector("h2").textContent=b.name;
+  c.querySelector(".desc").textContent=b.desc||DEF_DESC;
+  if(b.users){c.querySelector(".uc").textContent=b.users;c.querySelector(".uct").style.display=""}
+});
+if(STATS_URL && BOTS.length){
+  fetch(STATS_URL).then(x=>x.json()).then(d=>{
+    if(d && d.users!=null){const c=document.querySelector("#list .card");c.querySelector(".uc").textContent=Number(d.users).toLocaleString("en-US");c.querySelector(".uct").style.display=""}
+  }).catch(()=>{});
+}
+/* ===== AUTO NAME: sirf username se bot ka naam t.me page se uthata hai ===== */
+const PROXIES=[u=>"https://api.allorigins.win/raw?url="+encodeURIComponent(u),u=>"https://corsproxy.io/?"+encodeURIComponent(u)];
+async function getBotName(user){
+  for(const p of PROXIES){
+    try{
+      const r=await fetch(p("https://t.me/"+user));
+      const h=await r.text();
+      const m=h.match(/<meta property="og:title" content="([^"]*)"/i);
+      if(m){const t=new DOMParser().parseFromString(m[1],"text/html").documentElement.textContent.trim();if(t)return t}
+    }catch(e){}
+  }
+  return "";
+}
+BOTS.forEach(async b=>{
+  if(b.name && b.name.toLowerCase()!==b.user.toLowerCase() && !b.auto) return;   // naam pehle se hai
+  const n=await getBotName(b.user);
+  if(!n) return;
+  b.name=n;b.auto=true;
+  const card=document.querySelector('#list .card[data-user="'+b.user+'"] h2');
+  if(card) card.textContent=n;
+  try{localStorage.setItem("bots",JSON.stringify(BOTS))}catch(e){}
+});
+const LINKS={__GROUP__:GROUP_URL,__CHANNEL__:CHANNEL_URL,__OWNER__:OWNER_URL};
+document.querySelectorAll("[data-u]").forEach(a=>a.onclick=e=>{e.preventDefault();open(LINKS[a.dataset.u]||a.dataset.u)});
+$("contactBtn").onclick=()=>$("sheet").classList.add("show");
+$("cclose").onclick=()=>$("sheet").classList.remove("show");
+$("sheet").onclick=e=>{if(e.target.id==="sheet")$("sheet").classList.remove("show")};
+function showPage(p){
+  document.querySelectorAll("nav button[data-p],.page").forEach(x=>x.classList.remove("on","show"));
+  document.querySelector('nav button[data-p="'+p+'"]').classList.add("on");$(p).classList.add("show");
+}
+document.querySelectorAll("nav button[data-p]").forEach(b=>b.onclick=()=>showPage(b.dataset.p));
+$("meBtn").onclick=()=>showPage("profile");
+let since="2026";try{since=localStorage.getItem("since")||(localStorage.setItem("since",new Date().getFullYear()),String(new Date().getFullYear()))}catch(e){}
+$("since").textContent=since;$("nbots").textContent=BOTS.length;
+const TXT={en:{home:"Home",profile:"Profile",since:"Member Since",bots:"Bots Accessed",conn:"Connected via Telegram WebApp",lang:"Language",contact:"Contact",group:"Group",channel:"Channel",owner:"Owner"},
+ hi:{home:"होम",profile:"प्रोफाइल",since:"सदस्य बने",bots:"बॉट्स देखे",conn:"Telegram WebApp से जुड़े",lang:"भाषा",contact:"संपर्क",group:"ग्रुप",channel:"चैनल",owner:"ओनर"}};
+let L="en";try{L=localStorage.getItem("lang")||"en"}catch(e){}
+function applyLang(){const t=TXT[L];$("lang").value=L;document.querySelectorAll("[data-t]").forEach(e=>e.textContent=t[e.dataset.t]);
+ const n=document.querySelectorAll("nav button");n[0].lastChild.textContent=t.home;n[1].lastChild.textContent=t.profile;n[2].lastChild.textContent=t.contact;$("ctitle").textContent=t.contact}
+$("lang").onchange=e=>{L=e.target.value;try{localStorage.setItem("lang",L)}catch(x){}applyLang()};
+applyLang();
+</script>
+</body>
+</html>
